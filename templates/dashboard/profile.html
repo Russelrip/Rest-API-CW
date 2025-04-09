@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Countries API{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Profile</h1>
+        <p>View and manage your account information.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Account Information</h5>
+            </div>
+            <div class="card-body">
+                <div id="profile-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading your profile...</p>
+                </div>
+                <div id="profile-error" class="alert alert-danger d-none">
+                    Failed to load profile information. Please try again.
+                </div>
+                <div id="profile-content" class="d-none">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account Created</label>
+                        <input type="text" class="form-control" id="created-at" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Login</label>
+                        <input type="text" class="form-control" id="last-login" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>API Usage</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    View your API usage statistics in the <a href="/dashboard/api-keys">API Keys</a> section.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="/dashboard/api-keys" class="btn btn-primary">Manage API Keys</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Account Security</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    For security reasons, please logout when you're finished using the API dashboard.
+                </p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is logged in
+    if (!localStorage.getItem('access_token')) {
+        window.location.href = '/login';
+    }
+    
+    // Update navigation
+    updateNavigation();
+    
+    // Load profile data
+    loadProfile();
+});
+
+function updateNavigation() {
+    // Hide login/register links
+    document.getElementById('login-link').classList.add('d-none');
+    document.getElementById('register-link').classList.add('d-none');
+    
+    // Show dashboard and logout links
+    document.getElementById('dashboard-link').classList.remove('d-none');
+    document.getElementById('logout-link').classList.remove('d-none');
+}
+
+async function loadProfile() {
+    // Show loading state
+    document.getElementById('profile-loading').classList.remove('d-none');
+    document.getElementById('profile-content').classList.add('d-none');
+    document.getElementById('profile-error').classList.add('d-none');
+    
+    try {
+        const response = await fetch('/user/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load profile');
+        }
+        
+        const data = await response.json();
+        
+        // Hide loading
+        document.getElementById('profile-loading').classList.add('d-none');
+        
+        // Populate profile fields
+        document.getElementById('username').value = data.user.username;
+        document.getElementById('email').value = data.user.email;
+        document.getElementById('created-at').value = new Date(data.user.created_at).toLocaleString();
+        document.getElementById('last-login').value = data.user.last_login ? 
+            new Date(data.user.last_login).toLocaleString() : 'Never';
+        
+        // Show profile content
+        document.getElementById('profile-content').classList.remove('d-none');
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        document.getElementById('profile-loading').classList.add('d-none');
+        document.getElementById('profile-error').classList.remove('d-none');
+    }
+}
+
+function logout() {
+    // Clear local storage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    
+    // Redirect to login page
+    window.location.href = '/login';
+}
+</script>
+{% endblock %}

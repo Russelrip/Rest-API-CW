@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Countries API{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>API Documentation</h1>
+        <p>Learn how to use the Countries API service.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="#introduction" class="list-group-item list-group-item-action">Introduction</a>
+            <a href="#authentication" class="list-group-item list-group-item-action">Authentication</a>
+            <a href="#endpoints" class="list-group-item list-group-item-action">Endpoints</a>
+            <a href="#pagination" class="list-group-item list-group-item-action">Pagination</a>
+            <a href="#rate-limits" class="list-group-item list-group-item-action">Rate Limits</a>
+            <a href="#error-codes" class="list-group-item list-group-item-action">Error Codes</a>
+            <a href="#examples" class="list-group-item list-group-item-action">Examples</a>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body">
+                <section id="introduction">
+                    <h2>Introduction</h2>
+                    <p>
+                        The Countries API provides access to filtered country information from RestCountries.com.
+                        This API allows you to retrieve essential country details including:
+                    </p>
+                    <ul>
+                        <li>Country name</li>
+                        <li>Currency information</li>
+                        <li>Capital city</li>
+                        <li>Spoken languages</li>
+                        <li>National flag</li>
+                    </ul>
+                </section>
+                
+                <hr>
+                
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <p>
+                        All API requests require authentication using an API key. You can obtain an API key by 
+                        <a href="/register">registering</a> for an account and generating a key in the dashboard.
+                    </p>
+                    
+                    <h5>API Key Usage</h5>
+                    <p>Include your API key in one of the following ways:</p>
+                    
+                    <h6>HTTP Header (Recommended)</h6>
+                    <pre><code>X-API-Key: your_api_key_here</code></pre>
+                    
+                    <h6>Query Parameter</h6>
+                    <pre><code>?api_key=your_api_key_here</code></pre>
+                </section>
+                
+                <hr>
+                
+                <section id="endpoints">
+                    <h2>Endpoints</h2>
+                    
+                    <div class="mb-4">
+                        <h5>Get All Countries</h5>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <code>GET /api/v1/countries</code>
+                            </div>
+                            <div class="card-body">
+                                <p>Returns a paginated list of all countries with filtered data.</p>
+                                
+                                <h6>Query Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>page</td>
+                                            <td>No</td>
+                                            <td>Page number (default: 1)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>per_page</td>
+                                            <td>No</td>
+                                            <td>Items per page (default: 20, max: 100)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Get Country by Name</h5>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <code>GET /api/v1/countries/{name}</code>
+                            </div>
+                            <div class="card-body">
+                                <p>Returns country information for the specified name.</p>
+                                
+                                <h6>Path Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>name</td>
+                                            <td>Yes</td>
+                                            <td>Country name</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Get Countries by Currency</h5>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <code>GET /api/v1/countries/currency/{code}</code>
+                            </div>
+                            <div class="card-body">
+                                <p>Returns a paginated list of countries that use the specified currency code.</p>
+                                
+                                <h6>Path Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>code</td>
+                                            <td>Yes</td>
+                                            <td>Currency code (e.g., USD, EUR)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <h6>Query Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>page</td>
+                                            <td>No</td>
+                                            <td>Page number (default: 1)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>per_page</td>
+                                            <td>No</td>
+                                            <td>Items per page (default: 20, max: 100)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Get Countries by Language</h5>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <code>GET /api/v1/countries/language/{code}</code>
+                            </div>
+                            <div class="card-body">
+                                <p>Returns a paginated list of countries that speak the specified language.</p>
+                                
+                                <h6>Path Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>code</td>
+                                            <td>Yes</td>
+                                            <td>Language code (e.g., eng, fra)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <h6>Query Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>page</td>
+                                            <td>No</td>
+                                            <td>Page number (default: 1)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>per_page</td>
+                                            <td>No</td>
+                                            <td>Items per page (default: 20, max: 100)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Get Countries by Region</h5>
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <code>GET /api/v1/countries/region/{region}</code>
+                            </div>
+                            <div class="card-body">
+                                <p>Returns a paginated list of countries in the specified region.</p>
+                                
+                                <h6>Path Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>region</td>
+                                            <td>Yes</td>
+                                            <td>Region name (e.g., europe, asia)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <h6>Query Parameters</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>page</td>
+                                            <td>No</td>
+                                            <td>Page number (default: 1)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>per_page</td>
+                                            <td>No</td>
+                                            <td>Items per page (default: 20, max: 100)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <hr>
+                
+                <section id="pagination">
+                    <h2>Pagination</h2>
+                    <p>
+                        Endpoints that return multiple items are paginated by default. You can control pagination 
+                        using the <code>page</code> and <code>per_page</code> query parameters.
+                    </p>
+                    
+                    <h5>Pagination Response Format</h5>
+                    <pre><code>{
+  "items": [...],  // Array of items for the current page
+  "pagination": {
+    "page": 1,  // Current page
+    "per_page": 20,  // Items per page
+    "total_items": 250,  // Total number of items
+    "total_pages": 13,  // Total number of pages
+    "has_previous": false,  // Whether there is a previous page
+    "has_next": true  // Whether there is a next page
+  }
+}</code></pre>
+                </section>
+                
+                <hr>
+                
+                <section id="rate-limits">
+                    <h2>Rate Limits</h2>
+                    <p>
+                        API requests are subject to rate limiting to ensure fair usage. Current limits are:
+                    </p>
+                    <ul>
+                        <li>300 requests per day</li>
+                        <li>30 requests per hour</li>
+                        <li>5 requests per minute</li>
+                    </ul>
+                    <p>
+                        If you exceed these limits, you will receive a <code>429 Too Many Requests</code> response.
+                    </p>
+                </section>
+                
+                <hr>
+                
+                <section id="error-codes">
+                    <h2>Error Codes</h2>
+                    <p>
+                        The API uses standard HTTP status codes to indicate the success or failure of requests.
+                    </p>
+                    
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Status Code</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>200 OK</td>
+                                <td>The request was successful</td>
+                            </tr>
+                            <tr>
+                                <td>400 Bad Request</td>
+                                <td>The request contains invalid parameters</td>
+                            </tr>
+                            <tr>
+                                <td>401 Unauthorized</td>
+                                <td>API key is missing or invalid</td>
+                            </tr>
+                            <tr>
+                                <td>404 Not Found</td>
+                                <td>The requested resource was not found</td>
+                            </tr>
+                            <tr>
+                                <td>429 Too Many Requests</td>
+                                <td>Rate limit exceeded</td>
+                            </tr>
+                            <tr>
+                                <td>500 Internal Server Error</td>
+                                <td>An error occurred on the server</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                
+                <hr>
+                
+                <section id="examples">
+                    <h2>Examples</h2>
+                    
+                    <h5>Example Request: Get All Countries</h5>
+                    <pre><code>curl -H "X-API-Key: your_api_key_here" https://your-domain.com/api/v1/countries</code></pre>
+                    
+                    <h5>Example Response</h5>
+                    <pre><code>{
+  "items": [
+    {
+      "name": "Afghanistan",
+      "official_name": "Islamic Republic of Afghanistan",
+      "capital": "Kabul",
+      "languages": {
+        "prs": "Dari",
+        "pus": "Pashto",
+        "tuk": "Turkmen"
+      },
+      "currencies": {
+        "AFN": {
+          "name": "Afghan afghani",
+          "symbol": "؋"
+        }
+      },
+      "flag": "https://flagcdn.com/af.svg"
+    },
+    // More countries...
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total_items": 250,
+    "total_pages": 13,
+    "has_previous": false,
+    "has_next": true
+  }
+}</code></pre>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update navigation based on login status
+    if (localStorage.getItem('access_token')) {
+        document.getElementById('login-link').classList.add('d-none');
+        document.getElementById('register-link').classList.add('d-none');
+        document.getElementById('dashboard-link').classList.remove('d-none');
+        document.getElementById('logout-link').classList.remove('d-none');
+    }
+    
+    // Smooth scrolling for documentation links
+    document.querySelectorAll('.list-group-item').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                e.preventDefault();
+                window.scrollTo({
+                    top: targetElement.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+});
+
+function logout() {
+    // Clear local storage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    
+    // Redirect to login page
+    window.location.href = '/login';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Countries API{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Login</h3>
+            </div>
+            <div class="card-body">
+                <form id="login-form">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+                <div class="mt-3 text-center">
+                    <p>Don't have an account? <a href="/register">Register</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add this to your login.html page's JavaScript section
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check if user is already logged in
+        if (localStorage.getItem('access_token')) {
+            window.location.href = '/dashboard';
+        }
+
+        // Create alerts container if it doesn't exist
+        if (!document.getElementById('alerts-container')) {
+            const alertsContainer = document.createElement('div');
+            alertsContainer.id = 'alerts-container';
+            document.body.prepend(alertsContainer);
+        }
+
+        const loginForm = document.getElementById('login-form');
+
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                console.log('Attempting login...');
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                console.log('Login response status:', response.status);
+
+                // Check for non-JSON responses
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const textResponse = await response.text();
+                    console.error('Non-JSON response:', textResponse);
+                    showAlert('Server error. Please try again later.', 'danger');
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Login response data:', data);
+
+                if (response.ok) {
+                    // Store tokens in localStorage
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Show success message
+                    showAlert('Login successful!', 'success');
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1000);
+                } else {
+                    showAlert(data.error || data.message || 'Login failed!', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('An error occurred. Please try again.', 'danger');
+            }
+        });
+    });
+
+    function showAlert(message, type) {
+        const alertsContainer = document.getElementById('alerts-container');
+        if (!alertsContainer) {
+            console.error('Alerts container not found');
+            return;
+        }
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.role = 'alert';
+        alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+        alertsContainer.appendChild(alert);
+
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                if (alertsContainer.contains(alert)) {
+                    alertsContainer.removeChild(alert);
+                }
+            }, 150);
+        }, 5000);
+    }
+</script>
+{% endblock %}

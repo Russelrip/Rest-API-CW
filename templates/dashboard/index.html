@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Countries API{% endblock %}
+
+{% block content %}
+<!-- Add an alerts container that was missing in the dashboard -->
+<div id="alerts-container"></div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>Dashboard</h1>
+        <p>Welcome to your Countries API dashboard.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="/dashboard/api-keys" class="list-group-item list-group-item-action">
+                        Manage API Keys
+                    </a>
+                    <a href="/dashboard/profile" class="list-group-item list-group-item-action">
+                        Profile Settings
+                    </a>
+                    <a href="/docs" class="list-group-item list-group-item-action">
+                        API Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Getting Started</h5>
+            </div>
+            <div class="card-body">
+                <h6>How to use the Countries API</h6>
+                <ol>
+                    <li>
+                        <p>Generate an API key from the <a href="/dashboard/api-keys">API Keys</a> section.</p>
+                    </li>
+                    <li>
+                        <p>Include your API key in API requests using one of these methods:</p>
+                        <ul>
+                            <li>Header: <code>X-API-Key: your_api_key_here</code></li>
+                            <li>Query parameter: <code>?api_key=your_api_key_here</code></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <p>Access country data from the available endpoints:</p>
+                        <ul>
+                            <li><code>/api/v1/countries</code> - Get all countries</li>
+                            <li><code>/api/v1/countries/{name}</code> - Get country by name</li>
+                            <li><code>/api/v1/countries/currency/{code}</code> - Filter by currency</li>
+                            <li><code>/api/v1/countries/language/{code}</code> - Filter by language</li>
+                            <li><code>/api/v1/countries/region/{region}</code> - Filter by region</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h6 class="mt-4">Example Request</h6>
+                <pre><code>curl -H "X-API-Key: your_api_key_here" https://your-domain.com/api/v1/countries</code></pre>
+                
+                <p class="mt-3">
+                    Check out the <a href="/docs">full documentation</a> for more details on using the API.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load the fixed dashboard authentication code
+document.addEventListener('DOMContentLoaded', function() {
+    // Alert function for showing messages
+    window.showAlert = function(message, type) {
+        const alertsContainer = document.getElementById('alerts-container');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.role = 'alert';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        alertsContainer.appendChild(alert);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                alertsContainer.removeChild(alert);
+            }, 150);
+        }, 5000);
+    };
+
+    // SINGLE Authentication Check Function
+    function checkAuthentication() {
+        const accessToken = localStorage.getItem('access_token');
+        
+        // If no token exists, redirect to login
+        if (!accessToken) {
+            console.error('No access token found');
+            window.location.href = '/login';
+            return false;
+        }
+
+        // Validate token format and expiration
+        try {
+            const tokenParts = accessToken.split('.');
+            if (tokenParts.length !== 3) {
+                throw new Error('Invalid token format');
+            }
+
+            const payload = JSON.parse(atob(tokenParts[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            if (payload.exp && payload.exp < currentTime) {
+                console.error('Token expired');
+                refreshAccessToken();
+                return false;
+            }
+            
+            // Token is valid
+            return true;
+        } catch (error) {
+            console.error('Token validation error:', error);
+            window.location.href = '/login';
+            return false;
+        }
+    }
+
+    // Token refresh function
+    function refreshAccessToken() {
+        const refreshToken = localStorage.getItem('refresh_token');
+        
+        if (!refreshToken) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        fetch('/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${refreshToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Token refresh failed');
+        })
+        .then(data => {
+            localStorage.setItem('access_token', data.access_token);
+            window.location.reload();
+        })
+        .catch(() => {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        });
+    }
+
+    // Update navigation function
+    function updateNavigation() {
+        // Make sure navigation elements exist before trying to modify them
+        const loginLink = document.getElementById('login-link');
+        const registerLink = document.getElementById('register-link');
+        const dashboardLink = document.getElementById('dashboard-link');
+        const logoutLink = document.getElementById('logout-link');
+        
+        if (loginLink) loginLink.classList.add('d-none');
+        if (registerLink) registerLink.classList.add('d-none');
+        if (dashboardLink) dashboardLink.classList.remove('d-none');
+        if (logoutLink) logoutLink.classList.remove('d-none');
+    }
+
+    // Helper function for API requests
+    window.sendRequestWithToken = function(url, options = {}) {
+        const accessToken = localStorage.getItem('access_token');
+        
+        const headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        return fetch(url, {
+            ...options,
+            headers: headers
+        });
+    };
+    
+    // Logout function
+    window.logout = function() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    };
+    
+    // Initialize dashboard
+    function initDashboard() {
+        if (checkAuthentication()) {
+            updateNavigation();
+            showAlert('Welcome to your dashboard!', 'success');
+            
+            // Add any dashboard initialization code here
+            // For example, fetching user data or statistics
+        }
+    }
+    
+    // Run initialization
+    initDashboard();
+});
+</script>
+{% endblock %}
